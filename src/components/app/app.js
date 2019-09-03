@@ -12,6 +12,7 @@ export default class App extends Component {
   maxId = 100;
 
   state = {
+    userInpunt: '',
     todoData: [
       this.createItem('Drink Coffee'),
       this.createItem('Make Awesome App'),
@@ -89,21 +90,33 @@ export default class App extends Component {
     });
   }
 
+  onSearch = (text) => {
+    this.setState(() => { 
+      return {
+        userInpunt: text
+      }
+    });
+  }
+
   render() {
-    const { todoData } = this.state;
+    const { todoData, userInpunt } = this.state;
 
     const doneCount = todoData.filter((el) => el.done).length;
     const todoCount = todoData.length - doneCount;
+    const filteredData = todoData.filter(
+      (el) => el.label.toLowerCase().includes(userInpunt.toLowerCase())
+    )
+    const foundData = userInpunt ? filteredData : todoData
 
     return (
       <div className="todo-app">
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
-          <SearchPanel />
+          <SearchPanel onSearch={this.onSearch}/>
           <ItemStatusFilter />
         </div>
   
-        <TodoList todos={todoData} 
+        <TodoList todos={foundData} 
                   onDeleted={this.deleteItem}
                   onToggleDone={this.onToggleDone}
                   onToggleImportant={this.onToggleImportant}/>
