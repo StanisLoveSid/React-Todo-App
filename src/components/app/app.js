@@ -91,20 +91,12 @@ export default class App extends Component {
     });
   }
 
-  onSearch = (text) => {
-    this.setState(() => { 
-      return {
-        userInpunt: text
-      }
-    });
+  onSearch = (userInpunt) => {
+    this.setState({ userInpunt })
   }
 
   onChangeFilter = (filter) => {
-    this.setState(() => { 
-      return {
-        filter: filter
-      }
-    });
+    this.setState({ filter })
   }
 
   sortTodos(filter, array) {
@@ -136,7 +128,7 @@ export default class App extends Component {
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
           <SearchPanel onSearch={this.onSearch}/>
-          <ItemStatusFilter onChangeFilter={this.onChangeFilter}/>
+          <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
         </div>
   
         <TodoList todos={foundData} 
