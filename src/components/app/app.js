@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import AppHeader from '../app-header';
+import ApiService from '../../services/api-service';
 import SearchPanel from '../search-panel';
 import TodoList from '../todo-list';
 import ItemStatusFilter from '../item-status-filter';
@@ -9,17 +10,27 @@ import ItemAddForm from '../item-add-form';
 import './app.css';
 
 export default class App extends Component {
+  
+  apiService = new ApiService();
+
   maxId = 100;
 
   state = {
     filter: '',
     userInpunt: '',
-    todoData: [
-      this.createItem('Drink Coffee'),
-      this.createItem('Make Awesome App'),
-      this.createItem('Have a lunch')
-    ]
+    todoData: this.updateTodos()
   };
+
+  updateTodos() {
+    const newArray = [];
+    const projects = this.apiService.getAllProjects();
+    projects.then((value) => {
+      value.forEach((el) => { 
+        newArray.push({label: el.title, id: el.id, important: false, done: false}) 
+      })
+    })
+    return newArray;
+  }
 
   toggleProperty(arr, id, propName) {
     const idx = arr.findIndex((el) => el.id === id);
