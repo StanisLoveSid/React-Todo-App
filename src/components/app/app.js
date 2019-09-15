@@ -13,29 +13,33 @@ export default class App extends Component {
   
   apiService = new ApiService();
 
-  maxId = 100;
-
   state = {
+    projectId: 0,
     filter: '',
     userInpunt: '',
-    todoData: this.updateTodos()
+    todoData: []
   };
 
+  componentDidMount(){
+    this.updateTodos();
+  }
+
   updateTodos() {
-    const newArray = [];
+    const todoData = [];
     const projects = this.apiService.getAllProjects();
     projects.then((value) => {
       value.forEach((el) => { 
-        newArray.push({label: el.title, id: el.id, important: false, done: false}) 
+        todoData.push({label: el.title, id: el.id, important: false, done: el.done}) 
       })
     })
-    return newArray;
+    this.setState({ todoData })
   }
 
   toggleProperty(arr, id, propName) {
     const idx = arr.findIndex((el) => el.id === id);
 
     const oldItem = arr[idx];
+    this.apiService.updateProject(id, !oldItem.done);
     const newItem = {
       ... oldItem, [propName]: !oldItem.done
     }
@@ -64,15 +68,24 @@ export default class App extends Component {
   }
 
   createItem(text) {
+    const{ projectId } = this.state;
+    console.log(projectId)
     return {
       label: text,
       important: false,
       done: false,
-      id: this.maxId++
+      id: projectId
     }
   }
 
+  async fetchProject(text) {
+    await this.apiService.postProject(text).then((projectId) => {
+      this.setState({ projectId })
+    })
+  }
+
   addItem = (text) => {
+    this.fetchProject(text)
     const newItem = this.createItem(text);
 
     this.setState(({todoData}) => {
@@ -89,6 +102,8 @@ export default class App extends Component {
 
   deleteItem = (id) => {
     this.setState(({ todoData }) => {
+      this.apiService.deleteProject(id);
+
       const idx = todoData.findIndex((el) => el.id === id);
 
       const newArray = [

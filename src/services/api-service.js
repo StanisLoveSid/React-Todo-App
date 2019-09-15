@@ -9,7 +9,7 @@ export default class ApiService {
       throw new Error(`Could not fetch ${url}` + `, received ${res.status}`)
     }
 
-    return await res;
+    return res;
   }
 
   async getAllProjects(){
@@ -17,7 +17,41 @@ export default class ApiService {
     await this.getResource(`/projects.json`).then(response => {
       return response.json();
     }).then(data => { array = data })
-    return await array;
+    return array;
+  }
+
+  async updateProject(id, done) {
+    console.log(done)
+    await fetch(`${this._apiBase}/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ done: done }),
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    })  
+  }
+
+  async postProject(text) {
+    let id;
+    const data = { label: text } ;
+    
+    await fetch(`${this._apiBase}/projects`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json()).then(result => { id = result.id })
+    return id;
+  }
+
+  async deleteProject(id){      
+    return await fetch(`${this._apiBase}/projects/${id}`, {
+      method: 'DELETE',
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    })
   }
 
   getProject(id){
