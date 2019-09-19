@@ -29,7 +29,7 @@ export default class App extends Component {
     const projects = this.apiService.getAllProjects();
     projects.then((value) => {
       value.forEach((el) => { 
-        todoData.push({label: el.title, id: el.id, important: false, done: el.done}) 
+        todoData.push({label: el.title, id: el.id, important: el.important, done: el.done}) 
       })
     })
     this.setState({ todoData })
@@ -39,9 +39,10 @@ export default class App extends Component {
     const idx = arr.findIndex((el) => el.id === id);
 
     const oldItem = arr[idx];
-    this.apiService.updateProject(id, !oldItem.done);
+    const oldItemPropName = propName === 'done' ? !oldItem.done : !oldItem.important; 
+    this.apiService.updateProject(id, propName, oldItemPropName);
     const newItem = {
-      ... oldItem, [propName]: !oldItem.done
+      ... oldItem, [propName]: oldItemPropName
     }
 
     return [

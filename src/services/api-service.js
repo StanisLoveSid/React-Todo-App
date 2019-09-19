@@ -20,11 +20,11 @@ export default class ApiService {
     return array;
   }
 
-  async updateProject(id, done) {
-    console.log(done)
+  async updateProject(id, propName, statement) {
+    console.log(propName)
     await fetch(`${this._apiBase}/projects/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ done: done }),
+      body: JSON.stringify({ [propName]: statement }),
       headers:{
         'Content-Type': 'application/json'
       }
