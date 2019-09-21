@@ -29,7 +29,8 @@ export default class App extends Component {
     const projects = this.apiService.getAllProjects();
     projects.then((value) => {
       value.forEach((el) => { 
-        todoData.push({label: el.title, id: el.id, important: el.important, done: el.done}) 
+        todoData.push({label: el.title, id: el.id, important: el.important, 
+                       done: el.done, filePath: `http://localhost:3001${el.attachment.url}`}) 
       })
     })
     this.setState({ todoData })

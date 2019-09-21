@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 import './todo-list-item.css';
 
@@ -6,7 +7,35 @@ export default class TodoListItem extends Component {
 
   state = {
     done: false,
-    important: false
+    important: false,
+    selectedFile: null,
+    filePath: this.props.filePath,
+    newFilePath: null
+  }
+
+  fileSelectedHandler = event => {
+    this.setState({
+      selectedFile: event.target.files[0]
+    })
+  }
+
+  fileUploadedHandler =  async () => {
+    const fd = new FormData();
+    fd.append('attachment', this.state.selectedFile, this.state.selectedFile.name)
+    await axios.put(`http://localhost:3001/projects/${this.props.id}`, fd)
+      .then((res) => {
+        this.setState({
+          newFilePath: `http://localhost:3001${res.data.url}`
+       })
+    })
+  }
+
+  setFilePath(path) {
+    if(path === null){
+      return this.state.filePath;
+    } else {
+      return path;
+    }
   }
 
   render() {
@@ -15,6 +44,8 @@ export default class TodoListItem extends Component {
                    onToggleDone,
                    important,
                    done} = this.props;
+
+    const path = this.state.newFilePath;
 
     let classNames = 'todo-list-item';
 
@@ -33,12 +64,18 @@ export default class TodoListItem extends Component {
           onClick={onToggleDone}>
           {label}
         </span>
+
+        <input type='file' 
+               onChange={this.fileSelectedHandler}/>
+        <button onClick={this.fileUploadedHandler}>Upload</button>
   
         <button type="button"
                 className="btn btn-outline-success btn-sm float-right"
                 onClick={onToggleImportant}>
           <i className="fa fa-exclamation" />
         </button>
+       
+        <a href={this.setFilePath(path)}>Link to attachment</a>
   
         <button type="button"
                 className="btn btn-outline-danger btn-sm float-right"
