@@ -64,24 +64,27 @@ export default class TodoListItem extends Component {
           onClick={onToggleDone}>
           {label}
         </span>
-
-        <input type='file' 
-               onChange={this.fileSelectedHandler}/>
-        <button onClick={this.fileUploadedHandler}>Upload</button>
   
         <button type="button"
                 className="btn btn-outline-success btn-sm float-right"
                 onClick={onToggleImportant}>
           <i className="fa fa-exclamation" />
         </button>
-       
-        <a href={this.setFilePath(path)}>Link to attachment</a>
-  
+
         <button type="button"
                 className="btn btn-outline-danger btn-sm float-right"
                 onClick={onDeleted}>
           <i className="fa fa-trash-o" />
         </button>
+       
+        <div>
+        <input type='file' 
+               onChange={this.fileSelectedHandler}/> 
+        </div>
+        <button className='btn btn-primary' style={ { width: '100px' } } onClick={this.fileUploadedHandler}>Upload</button>
+        <div>
+        <a href={this.setFilePath(path)}>{this.setFilePath(path).split('/').slice(-1)[0]}</a>
+        </div>
       </span>
     );
   }
