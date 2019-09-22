@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import {Motion, spring} from 'react-motion';
+import Progress from '../progress';
 import axios from 'axios';
 
 import './todo-list-item.css';
@@ -10,7 +12,8 @@ export default class TodoListItem extends Component {
     important: false,
     selectedFile: null,
     filePath: this.props.filePath,
-    newFilePath: null
+    newFilePath: null,
+    uploadPercentage: 0
   }
 
   fileSelectedHandler = event => {
@@ -22,7 +25,15 @@ export default class TodoListItem extends Component {
   fileUploadedHandler =  async () => {
     const fd = new FormData();
     fd.append('attachment', this.state.selectedFile, this.state.selectedFile.name)
-    await axios.put(`http://localhost:3001/projects/${this.props.id}`, fd)
+    await axios.put(`http://localhost:3001/projects/${this.props.id}`, fd, {
+      onUploadProgress: progressEvent => {
+        this.setState({
+          uploadPercentage: parseInt(Math.round((progressEvent.loaded * 100) / progressEvent.total))
+        })
+
+        setTimeout(() => this.setState({uploadPercentage: 0}), 2000);
+      }
+    })
       .then((res) => {
         this.setState({
           newFilePath: `http://localhost:3001${res.data.url}`
@@ -45,7 +56,7 @@ export default class TodoListItem extends Component {
                    important,
                    done} = this.props;
 
-    const path = this.state.newFilePath;
+    const finalPath = this.setFilePath(this.state.newFilePath);
 
     let classNames = 'todo-list-item';
 
@@ -81,9 +92,24 @@ export default class TodoListItem extends Component {
         <input type='file' 
                onChange={this.fileSelectedHandler}/> 
         </div>
-        <button className='btn btn-primary' style={ { width: '100px' } } onClick={this.fileUploadedHandler}>Upload</button>
+        <div className='mt-2'>
+        <button className='btn btn-primary' 
+                style={ { width: '100px' } } 
+                onClick={this.fileUploadedHandler}>Upload</button>
+        </div>
+        <div className='mt-2'>
+          <Motion style={{currentOpacity: spring(this.state.uploadPercentage === 0 ? 0 : 1, { stiffness: 140, damping: 20 })}}>
+              {({currentOpacity}) =>
+                  <div style={{opacity: currentOpacity}}>
+                      <Progress percentage={this.state.uploadPercentage}/>
+                  </div>
+              }
+          </Motion>
+        </div>
         <div>
-        <a href={this.setFilePath(path)}>{this.setFilePath(path).split('/').slice(-1)[0]}</a>
+          { finalPath !== undefined ? finalPath.includes('null') ? 
+            null : 
+            <a href={finalPath}>{finalPath.split('/').slice(-1)[0]}</a> : null }
         </div>
       </span>
     );
