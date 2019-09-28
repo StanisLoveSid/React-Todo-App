@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {Motion, spring} from 'react-motion';
+import { Draggable } from 'react-beautiful-dnd';
 import Progress from '../progress';
 import axios from 'axios';
 
@@ -69,6 +70,12 @@ export default class TodoListItem extends Component {
     }
   
     return (
+      <Draggable key={this.props.id} draggableId={this.props.id} index={this.props.index}>
+      {(provided) => (
+        <div className='list-group-item'
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}>
       <span className={classNames}>
         <span
           className="todo-list-item-label"
@@ -106,12 +113,15 @@ export default class TodoListItem extends Component {
               }
           </Motion>
         </div>
-        <div>
+        <div className='mt-2'></div>
           { finalPath !== undefined ? finalPath.includes('null') ? 
             null : 
-            <a href={finalPath}>{finalPath.split('/').slice(-1)[0]}</a> : null }
-        </div>
+            <a href={finalPath} target='_blank'>{finalPath.split('/').slice(-1)[0]}</a> : null }
+        
       </span>
+      </div>
+       )}
+    </Draggable>
     );
   }
 }

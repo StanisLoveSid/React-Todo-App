@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { DragDropContext } from 'react-beautiful-dnd';
+import axios from 'axios';
 
 import AppHeader from '../app-header';
 import ApiService from '../../services/api-service';
@@ -9,7 +11,20 @@ import ItemAddForm from '../item-add-form';
 
 import './app.css';
 
+const reorder = (list, startIndex, endIndex) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
 export default class App extends Component {
+
+  constructor(props) {
+    super(props);
+    this.onDragEnd = this.onDragEnd.bind(this);
+  }
   
   apiService = new ApiService();
 
@@ -24,16 +39,26 @@ export default class App extends Component {
     this.updateTodos();
   }
 
-  updateTodos() {
+  async getTodos() {
     const todoData = [];
     const projects = this.apiService.getAllProjects();
-    projects.then((value) => {
+    await projects.then((value) => {
       value.forEach((el) => { 
-        todoData.push({label: el.title, id: el.id, important: el.important, 
+        todoData.push({label: el.title, id: el.id, important: el.important, position: el.position,
                        done: el.done, filePath: `http://localhost:3001${el.attachment.url}`}) 
+        this.setState({ projectId: el.id })
       })
     })
-    this.setState({ todoData })
+    return todoData;
+  }
+
+  async updateTodos() {
+    const todoData = await this.getTodos();
+    const sortedData = todoData.sort((a,b) => {
+      return a.position - b.position
+    })
+    console.log(sortedData)
+    this.setState({ todoData: sortedData })
   }
 
   toggleProperty(arr, id, propName) {
@@ -71,18 +96,19 @@ export default class App extends Component {
 
   createItem(text) {
     const{ projectId } = this.state;
-    console.log(projectId)
+    // onsole.log(projectId)
     return {
       label: text,
       important: false,
       done: false,
-      id: projectId
+      id: projectId+1
     }
   }
 
   async fetchProject(text) {
     await this.apiService.postProject(text).then((projectId) => {
       this.setState({ projectId })
+      console.log(projectId)
     })
   }
 
@@ -140,6 +166,29 @@ export default class App extends Component {
     }
   }
 
+  onDragEnd(result) {
+    if (!result.destination) {
+      return;
+    }
+
+    const todoData = reorder(
+      this.state.todoData,
+      result.source.index,
+      result.destination.index
+    );
+
+    const sortedData = [];
+
+    todoData.forEach((el, index) => {  
+      sortedData.push([el.id, index])
+    })
+
+    axios.put('http://localhost:3001/update_position', { positions: sortedData })
+    this.setState({
+      todoData
+    });
+  }
+
   render() {
     const { todoData, userInpunt, filter } = this.state;
 
@@ -158,11 +207,12 @@ export default class App extends Component {
           <SearchPanel onSearch={this.onSearch}/>
           <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
         </div>
-  
+        <DragDropContext onDragEnd={this.onDragEnd}>
         <TodoList todos={foundData} 
                   onDeleted={this.deleteItem}
                   onToggleDone={this.onToggleDone}
                   onToggleImportant={this.onToggleImportant}/>
+        </DragDropContext>
 
         <ItemAddForm  onAdded={this.addItem}/>
       </div>
