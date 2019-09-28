@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
+import { DragDropContext } from 'react-beautiful-dnd';
+import axios from 'axios';
 
 import AppHeader from '../app-header';
+import ApiService from '../../services/api-service';
 import SearchPanel from '../search-panel';
 import TodoList from '../todo-list';
 import ItemStatusFilter from '../item-status-filter';
@@ -8,25 +11,64 @@ import ItemAddForm from '../item-add-form';
 
 import './app.css';
 
+const reorder = (list, startIndex, endIndex) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
 export default class App extends Component {
-  maxId = 100;
+
+  constructor(props) {
+    super(props);
+    this.onDragEnd = this.onDragEnd.bind(this);
+  }
+  
+  apiService = new ApiService();
 
   state = {
+    projectId: 0,
     filter: '',
     userInpunt: '',
-    todoData: [
-      this.createItem('Drink Coffee'),
-      this.createItem('Make Awesome App'),
-      this.createItem('Have a lunch')
-    ]
+    todoData: []
   };
+
+  componentDidMount(){
+    this.updateTodos();
+  }
+
+  async getTodos() {
+    const todoData = [];
+    const projects = this.apiService.getAllProjects();
+    await projects.then((value) => {
+      value.forEach((el) => { 
+        todoData.push({label: el.title, id: el.id, important: el.important, position: el.position,
+                       done: el.done, filePath: `http://localhost:3001${el.attachment.url}`}) 
+        this.setState({ projectId: el.id })
+      })
+    })
+    return todoData;
+  }
+
+  async updateTodos() {
+    const todoData = await this.getTodos();
+    const sortedData = todoData.sort((a,b) => {
+      return a.position - b.position
+    })
+    console.log(sortedData)
+    this.setState({ todoData: sortedData })
+  }
 
   toggleProperty(arr, id, propName) {
     const idx = arr.findIndex((el) => el.id === id);
 
     const oldItem = arr[idx];
+    const oldItemPropName = propName === 'done' ? !oldItem.done : !oldItem.important; 
+    this.apiService.updateProject(id, propName, oldItemPropName);
     const newItem = {
-      ... oldItem, [propName]: !oldItem.done
+      ... oldItem, [propName]: oldItemPropName
     }
 
     return [
@@ -53,15 +95,25 @@ export default class App extends Component {
   }
 
   createItem(text) {
+    const{ projectId } = this.state;
+    // onsole.log(projectId)
     return {
       label: text,
       important: false,
       done: false,
-      id: this.maxId++
+      id: projectId+1
     }
   }
 
+  async fetchProject(text) {
+    await this.apiService.postProject(text).then((projectId) => {
+      this.setState({ projectId })
+      console.log(projectId)
+    })
+  }
+
   addItem = (text) => {
+    this.fetchProject(text)
     const newItem = this.createItem(text);
 
     this.setState(({todoData}) => {
@@ -78,6 +130,8 @@ export default class App extends Component {
 
   deleteItem = (id) => {
     this.setState(({ todoData }) => {
+      this.apiService.deleteProject(id);
+
       const idx = todoData.findIndex((el) => el.id === id);
 
       const newArray = [
@@ -112,6 +166,29 @@ export default class App extends Component {
     }
   }
 
+  onDragEnd(result) {
+    if (!result.destination) {
+      return;
+    }
+
+    const todoData = reorder(
+      this.state.todoData,
+      result.source.index,
+      result.destination.index
+    );
+
+    const sortedData = [];
+
+    todoData.forEach((el, index) => {  
+      sortedData.push([el.id, index])
+    })
+
+    axios.put('http://localhost:3001/update_position', { positions: sortedData })
+    this.setState({
+      todoData
+    });
+  }
+
   render() {
     const { todoData, userInpunt, filter } = this.state;
 
@@ -130,11 +207,12 @@ export default class App extends Component {
           <SearchPanel onSearch={this.onSearch}/>
           <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
         </div>
-  
+        <DragDropContext onDragEnd={this.onDragEnd}>
         <TodoList todos={foundData} 
                   onDeleted={this.deleteItem}
                   onToggleDone={this.onToggleDone}
                   onToggleImportant={this.onToggleImportant}/>
+        </DragDropContext>
 
         <ItemAddForm  onAdded={this.addItem}/>
       </div>
