@@ -8,6 +8,7 @@ import SearchPanel from '../search-panel';
 import TodoList from '../todo-list';
 import ItemStatusFilter from '../item-status-filter';
 import ItemAddForm from '../item-add-form';
+import Facebook from '../facebook';
 
 import './app.css';
 
@@ -202,6 +203,7 @@ export default class App extends Component {
 
     return (
       <div className="todo-app">
+        <Facebook/>
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
           <SearchPanel onSearch={this.onSearch}/>
