@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Motion, spring} from 'react-motion';
-import { Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import Progress from '../progress';
 import axios from 'axios';
 
@@ -9,12 +9,20 @@ import './todo-list-item.css';
 export default class TodoListItem extends Component {
 
   state = {
+    tasks: [],
+    label: '',
     done: false,
     important: false,
     selectedFile: null,
     filePath: this.props.filePath,
     newFilePath: null,
     uploadPercentage: 0
+  }
+
+  componentDidMount() {
+    this.setState({
+      tasks: this.props.tasks
+    })
   }
 
   fileSelectedHandler = event => {
@@ -48,6 +56,73 @@ export default class TodoListItem extends Component {
     } else {
       return path;
     }
+  }
+
+  deleteTask = (id) => {
+    this.setState(({ tasks }) => {
+      axios.delete(`http://localhost:3001/tasks/${id}`)
+      const idx = tasks.findIndex((el) => el.id === id);
+
+      const newArray = [
+        ... tasks.slice(0,idx),
+        ... tasks.slice(idx + 1)
+      ];
+
+      return {
+        tasks: newArray
+      }
+    });
+  }
+
+  onSubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData();
+    const { label } = this.state;
+    const { id } = this.props;
+    fd.append('title', label);
+    fd.append('project_id', id);
+    await axios.post('http://localhost:3001/tasks', fd).then((res) =>{
+      this.setState(({tasks}) => {
+        const newArray = [
+          ... tasks,
+          res.data
+        ];
+
+        return {
+          tasks: newArray,
+          label: ''
+        }  
+      });
+    })
+  }
+
+  onLabelChange = (e) => {
+    this.setState({
+      label: e.target.value
+    });
+  }
+
+  onDragEnd(result) {
+    // if (!result.destination) {
+    //   return;
+    // }
+
+    // const todoData = reorder(
+    //   this.state.todoData,
+    //   result.source.index,
+    //   result.destination.index
+    // );
+
+    // const sortedData = [];
+
+    // todoData.forEach((el, index) => {  
+    //   sortedData.push([el.id, index])
+    // })
+
+    // axios.put('http://localhost:3001/update_position', { positions: sortedData })
+    // this.setState({
+    //   todoData
+    // });
   }
 
   render() {
@@ -119,6 +194,55 @@ export default class TodoListItem extends Component {
             <a href={finalPath} target='_blank'>{finalPath.split('/').slice(-1)[0]}</a> : null }
         
       </span>
+      <div>
+        {
+          this.state.tasks.map((task, index) => {
+            return (
+              <DragDropContext onDragEnd={this.onDragEnd}>
+              <ul className='list-group todo-list list-unstyled' >
+              <Droppable droppableId="droppable">
+              {(provided) => (
+              <div {...provided.droppableProps}
+                   ref={provided.innerRef}>
+              <Draggable key={task.id} draggableId={task.id} index={index}>
+              {(provided) => (
+                <div className='list-group-item'
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}>
+              <span className={classNames}>
+                {task.title} {task.deadline}
+                <button type="button"
+                        className="btn btn-outline-danger btn-sm float-right"
+                        onClick={() => { this.deleteTask(task.id) }}>
+                  <i className="fa fa-trash-o" />
+                </button>
+                </span>
+                {provided.placeholder}
+                </div>
+                )}
+              </Draggable>
+              </div>
+              )}
+           </Droppable> 
+           </ul>
+           </DragDropContext>
+              )
+          })
+        }
+        <form className='item-add-form d-flex'
+              onSubmit={this.onSubmit}>
+
+          <input type='text'
+                 className='form-control'
+                 onChange={this.onLabelChange}
+                 placeholder='Add Task'
+                 value={this.state.label}/>
+          <button className='btn btn-outline-secondary'>
+            Add
+          </button>
+        </form>
+      </div>
       </div>
        )}
     </Draggable>

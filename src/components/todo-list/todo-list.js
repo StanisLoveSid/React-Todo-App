@@ -13,6 +13,7 @@ const TodoList = ({ todos, onDeleted, onToggleImportant, onToggleDone}) => {
       <li key={id} >
         <TodoListItem {... itemProps}
                       id={id}
+                      tasks={item.tasks}
                       index={index}
                       onDeleted={() => onDeleted(id)}
                       onToggleImportant={() => onToggleImportant(id)}
