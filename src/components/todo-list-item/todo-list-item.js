@@ -6,7 +6,20 @@ import axios from 'axios';
 
 import './todo-list-item.css';
 
+const reorder = (list, startIndex, endIndex) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
 export default class TodoListItem extends Component {
+
+  constructor(props) {
+    super(props);
+    this.onDragEnd = this.onDragEnd.bind(this);
+  }
 
   state = {
     tasks: [],
@@ -103,26 +116,26 @@ export default class TodoListItem extends Component {
   }
 
   onDragEnd(result) {
-    // if (!result.destination) {
-    //   return;
-    // }
+    if (!result.destination) {
+      return;
+    }
 
-    // const todoData = reorder(
-    //   this.state.todoData,
-    //   result.source.index,
-    //   result.destination.index
-    // );
+    const tasks = reorder(
+      this.state.tasks,
+      result.source.index,
+      result.destination.index
+    );
 
-    // const sortedData = [];
+    const sortedTasks = [];
 
-    // todoData.forEach((el, index) => {  
-    //   sortedData.push([el.id, index])
-    // })
+    tasks.forEach((el, index) => {  
+      sortedTasks.push([el.id, index])
+    })
 
-    // axios.put('http://localhost:3001/update_position', { positions: sortedData })
-    // this.setState({
-    //   todoData
-    // });
+    axios.put('http://localhost:3001/update_tasks_position', { positions: sortedTasks })
+    this.setState({
+      tasks
+    });
   }
 
   render() {
@@ -195,41 +208,36 @@ export default class TodoListItem extends Component {
         
       </span>
       <div>
-        {
-          this.state.tasks.map((task, index) => {
-            return (
-              <DragDropContext onDragEnd={this.onDragEnd}>
-              <ul className='list-group todo-list list-unstyled' >
-              <Droppable droppableId="droppable">
-              {(provided) => (
-              <div {...provided.droppableProps}
-                   ref={provided.innerRef}>
-              <Draggable key={task.id} draggableId={task.id} index={index}>
-              {(provided) => (
-                <div className='list-group-item'
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}>
-              <span className={classNames}>
-                {task.title} {task.deadline}
-                <button type="button"
-                        className="btn btn-outline-danger btn-sm float-right"
-                        onClick={() => { this.deleteTask(task.id) }}>
-                  <i className="fa fa-trash-o" />
-                </button>
-                </span>
-                {provided.placeholder}
-                </div>
-                )}
-              </Draggable>
-              </div>
-              )}
-           </Droppable> 
-           </ul>
-           </DragDropContext>
-              )
-          })
-        }
+
+      <DragDropContext onDragEnd={this.onDragEnd}>
+        <Droppable droppableId="droppable">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}>
+              {this.state.tasks.map((item, index) => (
+                <Draggable key={item.id} draggableId={item.id} index={index}>
+                  {(provided) => (
+                    <div className='list-group-item'
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}>
+                      {item.title} {item.deadline}
+                      <button type="button"
+                              className="btn btn-outline-danger btn-sm float-right"
+                              onClick={() => { this.deleteTask(item.id) }}>
+                        <i className="fa fa-trash-o" />
+                       </button>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
         <form className='item-add-form d-flex'
               onSubmit={this.onSubmit}>
 
