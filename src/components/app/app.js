@@ -30,6 +30,7 @@ export default class App extends Component {
   apiService = new ApiService();
 
   state = {
+    loggedIn: false,
     projectId: 0,
     filter: '',
     userInpunt: '',
@@ -130,6 +131,10 @@ export default class App extends Component {
     this.fetchProject(text);
   }
 
+  setLogIn = (logged) => {
+    this.setState({loggedIn: logged})
+  }
+
   deleteItem = (id) => {
     this.setState(({ todoData }) => {
       this.apiService.deleteProject(id);
@@ -204,7 +209,8 @@ export default class App extends Component {
 
     return (
       <div className="todo-app">
-        <Facebook/>
+        <div style={ this.state.loggedIn ? {display: 'block'} : {display: 'none'} }>
+        <Facebook setLogIn={this.setLogIn}/>
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
           <SearchPanel onSearch={this.onSearch}/>
@@ -218,6 +224,7 @@ export default class App extends Component {
         </DragDropContext>
 
         <ItemAddForm  onAdded={this.addItem}/>
+        </div>
       </div>
     );
   }

@@ -178,7 +178,7 @@ export default class TodoListItem extends Component {
   }
 
   render() {
-    const { title, onDeleted, 
+    const { title, onDeleted,
                    onToggleImportant, 
                    onToggleDone,
                    important,
@@ -220,6 +220,12 @@ export default class TodoListItem extends Component {
                 className="btn btn-outline-danger btn-sm float-right"
                 onClick={onDeleted}>
           <i className="fa fa-trash-o" />
+        </button>
+
+        <button type="button"
+                className="btn btn-outline-info btn-sm float-right"
+                >
+          <i className="fa fa-pencil" />
         </button>
        
         <div>
