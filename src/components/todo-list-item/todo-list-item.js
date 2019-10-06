@@ -178,7 +178,7 @@ export default class TodoListItem extends Component {
   }
 
   render() {
-    const { label, onDeleted, 
+    const { title, onDeleted, 
                    onToggleImportant, 
                    onToggleDone,
                    important,
@@ -207,7 +207,7 @@ export default class TodoListItem extends Component {
         <span
           className="todo-list-item-label"
           onClick={onToggleDone}>
-          {label}
+          {title}
         </span>
   
         <button type="button"
@@ -288,7 +288,7 @@ export default class TodoListItem extends Component {
               onSubmit={this.onSubmit}>
 
           <input type='text'
-                 style={{width: '160px'}}
+                 style={{width: '495px'}}
                  className='form-control'
                  onChange={this.onLabelChange}
                  placeholder='Add Task'

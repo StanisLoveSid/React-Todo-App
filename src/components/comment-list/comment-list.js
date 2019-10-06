@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import { Motion, spring } from 'react-motion';
-import Progress from '../progress';
 import Comment from '../comment';
 import axios from 'axios';
 
@@ -74,7 +72,7 @@ export default class CommentList extends Component {
         <div>
         <li>
           <a onClick={() => { this.toggleComments(this.state.showComments) }}>
-            Show comments({this.state.comments.length})
+            {this.state.showComments ? 'Hide': 'Show'} comments({this.state.comments.length})
           </a>
         </li>
       <span style={ this.state.showComments ? {display: 'block'} : {display: 'none'}}>
@@ -82,16 +80,16 @@ export default class CommentList extends Component {
           <Comment comment={comment}
                    onDeleted={this.deleteComment}/>
         ))}
-        <form className='item-add-form d-flex'
+        <form className='d-flex'
               onSubmit={this.onSubmit}>
 
           <input type='text'
-                 style={{width: '160px'}}
+                 style={{width: '620px', marginRight: '3px', marginTop: '10px'}}
                  className='form-control'
                  onChange={this.onLabelChange}
                  placeholder='Comment'
                  value={this.state.label}/>
-          <button className='btn btn-outline-secondary'>
+          <button className='btn btn-outline-secondary' style={{height: '38px', marginTop: '10px'}}>
             Add
           </button>
         </form>

@@ -51,14 +51,22 @@ export default class Comment extends Component {
     const finalPath = this.setFilePath(this.state.newFilePath);
 
     return(
-        <li className='list-group-item' style={{width: '250px'}}>
+        <li className='list-group-item' style={{width: '680px'}}>
           <div> 
-          {this.props.comment.title}
-          <input type='file' 
-               onChange={this.fileSelectedHandler}/> 
+          <span>
+            {this.props.comment.title}
+          </span>
+          <button type="button"
+                className="btn btn-outline-danger btn-sm float-right"
+                onClick={() => { this.props.onDeleted(this.props.comment.id) }}>
+         <i className="fa fa-trash-o" />
+       </button>
+          <div>
+          <input type='file' onChange={this.fileSelectedHandler} style={{ width: '270px' }}/> 
           <button className='btn btn-primary' 
                 style={ { width: '100px' } } 
                 onClick={this.fileUploadedHandler}>Upload</button>
+          </div>
           <Motion style={{currentOpacity: spring(this.state.uploadPercentage === 0 ? 0 : 1, { stiffness: 140, damping: 20 })}}>
               {({currentOpacity}) =>
                   <div style={{opacity: currentOpacity}}>
@@ -70,13 +78,6 @@ export default class Comment extends Component {
             null : 
             <a href={finalPath} target='_blank'>{finalPath.split('/').slice(-1)[0]}</a> : null }
             </div> 
-            <div>
-        <button type="button"
-                className="btn btn-outline-danger btn-sm float-right"
-                onClick={() => { this.props.onDeleted(this.props.comment.id) }}>
-         <i className="fa fa-trash-o" />
-       </button>
-       </div>
       </li>
     )
   }
