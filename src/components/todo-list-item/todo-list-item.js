@@ -3,7 +3,10 @@ import {Motion, spring} from 'react-motion';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import Progress from '../progress';
 import axios from 'axios';
-
+import DatePicker from "react-datepicker";
+import CommentList from '../comment-list';
+ 
+import "react-datepicker/dist/react-datepicker.css";
 import './todo-list-item.css';
 
 const reorder = (list, startIndex, endIndex) => {
@@ -22,6 +25,7 @@ export default class TodoListItem extends Component {
   }
 
   state = {
+    startDate: new Date(),
     tasks: [],
     label: '',
     done: false,
@@ -31,6 +35,12 @@ export default class TodoListItem extends Component {
     newFilePath: null,
     uploadPercentage: 0
   }
+
+  handleChange = date => {
+    this.setState({
+      startDate: date
+    });
+  };
 
   componentDidMount() {
     this.setState({
@@ -71,6 +81,34 @@ export default class TodoListItem extends Component {
     }
   }
 
+  changeDone = (id) => {
+    const { tasks } = this.state;
+    const idx = tasks.findIndex((el) => el.id === id);
+
+    const oldItem = tasks[idx];
+    const oldItemPropName = !oldItem.done;
+    const fd = new FormData();
+    fd.append('done', oldItemPropName);
+    axios.put(`http://localhost:3001/tasks/${id}`, fd)
+    const newItem = {
+      ... oldItem, done: oldItemPropName
+    }
+
+    const newArray = [
+      ... tasks.slice(0,idx),
+      newItem,
+      ... tasks.slice(idx + 1)
+    ];
+
+    console.log(newArray)
+
+    this.setState(({tasks}) => {
+      return {
+        tasks: newArray
+      } 
+    });
+  }
+
   deleteTask = (id) => {
     this.setState(({ tasks }) => {
       axios.delete(`http://localhost:3001/tasks/${id}`)
@@ -90,10 +128,11 @@ export default class TodoListItem extends Component {
   onSubmit = async (e) => {
     e.preventDefault();
     const fd = new FormData();
-    const { label } = this.state;
+    const { label, startDate } = this.state;
     const { id } = this.props;
     fd.append('title', label);
     fd.append('project_id', id);
+    fd.append('deadline', startDate);
     await axios.post('http://localhost:3001/tasks', fd).then((res) =>{
       this.setState(({tasks}) => {
         const newArray = [
@@ -222,12 +261,19 @@ export default class TodoListItem extends Component {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}>
-                      {item.title} {item.deadline}
+                      <span style={item.done ? {textDecorationLine: 'line-through'} : {}} 
+                            onClick={() => { this.changeDone(item.id) } }>
+                        {item.title} {item.deadline}
+                      </span>
                       <button type="button"
                               className="btn btn-outline-danger btn-sm float-right"
                               onClick={() => { this.deleteTask(item.id) }}>
                         <i className="fa fa-trash-o" />
                        </button>
+                      <span>
+                      <CommentList comments={item.comments}
+                                   taskId={item.id}/>
+                      </span>
                     </div>
                   )}
                 </Draggable>
@@ -242,10 +288,15 @@ export default class TodoListItem extends Component {
               onSubmit={this.onSubmit}>
 
           <input type='text'
+                 style={{width: '160px'}}
                  className='form-control'
                  onChange={this.onLabelChange}
                  placeholder='Add Task'
                  value={this.state.label}/>
+            <DatePicker style={{width: '20px'}}
+                        className='form-control'
+                        selected={this.state.startDate}
+                        onChange={this.handleChange}/>
           <button className='btn btn-outline-secondary'>
             Add
           </button>
