@@ -30,6 +30,7 @@ export default class App extends Component {
   apiService = new ApiService();
 
   state = {
+    loggedIn: false,
     projectId: 0,
     filter: '',
     userInpunt: '',
@@ -45,7 +46,8 @@ export default class App extends Component {
     const projects = this.apiService.getAllProjects();
     await projects.then((value) => {
       value.forEach((el) => { 
-        todoData.push({label: el.title, id: el.id, important: el.important, position: el.position,
+        todoData.push({title: el.title, id: el.id, important: el.important, 
+                       position: el.position, tasks: el.tasks,
                        done: el.done, filePath: `http://localhost:3001${el.attachment.url}`}) 
         this.setState({ projectId: el.id })
       })
@@ -107,26 +109,30 @@ export default class App extends Component {
   }
 
   async fetchProject(text) {
-    await this.apiService.postProject(text).then((projectId) => {
-      this.setState({ projectId })
-      console.log(projectId)
+    const fd = new FormData();
+    fd.append('label', text)
+     await axios.post('http://localhost:3001/projects', fd).then((res) =>{
+      console.log(res)
+      this.setState(({todoData}) => {
+        const newArray = [
+          ... todoData,
+          res.data
+        ];
+  
+        return {
+          todoData: newArray,
+          projectId: res.data.id
+        }  
+      });
     })
   }
 
   addItem = (text) => {
-    this.fetchProject(text)
-    const newItem = this.createItem(text);
+    this.fetchProject(text);
+  }
 
-    this.setState(({todoData}) => {
-      const newArray = [
-        ... todoData,
-        newItem
-      ];
-
-      return {
-        todoData: newArray
-      }  
-    });
+  setLogIn = (logged) => {
+    this.setState({loggedIn: logged})
   }
 
   deleteItem = (id) => {
@@ -197,13 +203,14 @@ export default class App extends Component {
     const todoCount = todoData.length - doneCount;
     const sortedData = this.sortTodos(filter, todoData)
     const filteredData = sortedData.filter(
-      (el) => el.label.toLowerCase().includes(userInpunt.toLowerCase())
+      (el) => el.title.toLowerCase().includes(userInpunt.toLowerCase())
     )
     const foundData = userInpunt ? filteredData : sortedData
 
     return (
       <div className="todo-app">
-        <Facebook/>
+        <div style={ this.state.loggedIn ? {display: 'block'} : {display: 'none'} }>
+        <Facebook setLogIn={this.setLogIn}/>
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
           <SearchPanel onSearch={this.onSearch}/>
@@ -217,6 +224,7 @@ export default class App extends Component {
         </DragDropContext>
 
         <ItemAddForm  onAdded={this.addItem}/>
+        </div>
       </div>
     );
   }
