@@ -4,7 +4,7 @@ import TodoListItem from '../todo-list-item';
 import { Droppable } from "react-beautiful-dnd";
 import './todo-list.css';
 
-const TodoList = ({ todos, onDeleted, onToggleImportant, onToggleDone}) => {
+const TodoList = ({ todos, onDeleted, onToggleImportant, onToggleDone, onUpdated}) => {
 
   const elements = todos.map((item, index) => {
     const { id, ... itemProps } = item;
@@ -15,6 +15,7 @@ const TodoList = ({ todos, onDeleted, onToggleImportant, onToggleDone}) => {
                       id={id}
                       tasks={item.tasks}
                       index={index}
+                      onUpdated={onUpdated}
                       onDeleted={() => onDeleted(id)}
                       onToggleImportant={() => onToggleImportant(id)}
                       onToggleDone={() => onToggleDone(id)}/>

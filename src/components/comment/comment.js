@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import { Motion, spring } from 'react-motion';
 import Progress from '../progress';
 import axios from 'axios';
+import CommentUpdateForm from '../comment-update-form';
 
 import './comment.css';
 
 export default class Comment extends Component {
 
   state = {
+    showEditForm: false,
     selectedFile: null,
     filePath: this.props.filePath,
     newFilePath: null,
@@ -47,20 +49,34 @@ export default class Comment extends Component {
     }
   }
 
+  openedForm = (edited) => {
+    this.setState({showEditForm: edited})
+  }
+
   render(){
     const finalPath = this.setFilePath(this.state.newFilePath);
 
     return(
         <li className='list-group-item' style={{width: '680px'}}>
           <div> 
-          <span>
-            {this.props.comment.title}
-          </span>
+          {this.state.showEditForm ? <CommentUpdateForm title={this.props.comment.title}
+                                                   openedForm={this.openedForm}
+                                                   id={this.props.comment.id} 
+                                                   onUpdated={this.props.onUpdated}/> 
+                                   : <span> {this.props.comment.title} </span>}
           <button type="button"
                 className="btn btn-outline-danger btn-sm float-right"
                 onClick={() => { this.props.onDeleted(this.props.comment.id) }}>
          <i className="fa fa-trash-o" />
        </button>
+
+       <button type="button"
+                 style={{marginRight: '10px'}}
+                className="btn btn-outline-info btn-sm float-right"
+                onClick={() => { this.setState({showEditForm: true}) }}>
+          <i className="fa fa-pencil" />
+        </button>
+
           <div>
           <input type='file' onChange={this.fileSelectedHandler} style={{ width: '270px' }}/> 
           <button className='btn btn-primary' 
