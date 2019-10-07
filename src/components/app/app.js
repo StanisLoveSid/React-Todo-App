@@ -110,7 +110,7 @@ export default class App extends Component {
 
   async fetchProject(text) {
     const fd = new FormData();
-    fd.append('label', text)
+    fd.append('title', text)
      await axios.post('http://localhost:3001/projects', fd).then((res) =>{
       console.log(res)
       this.setState(({todoData}) => {
@@ -129,6 +129,35 @@ export default class App extends Component {
 
   addItem = (text) => {
     this.fetchProject(text);
+  }
+
+  async fetchUpdatedItem(text, id) {
+
+  }
+
+  updateItem = async (text, id) => {
+    const fd = new FormData();
+    fd.append('title', text)
+    await axios.put(`http://localhost:3001/projects/${id}`, fd).then((res) => {
+      this.setState(({ todoData }) => {
+        const idx = this.state.todoData.findIndex((el) => el.id === id);
+
+        const oldItem = todoData[idx];
+        const newItem = {
+          ... oldItem, title: text
+        }
+  
+        const newArray = [
+          ... todoData.slice(0,idx),
+          newItem,
+          ... todoData.slice(idx + 1)
+        ];
+  
+        return {
+          todoData: newArray
+        }
+      });
+    })
   }
 
   setLogIn = (logged) => {
@@ -217,7 +246,8 @@ export default class App extends Component {
           <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
         </div>
         <DragDropContext onDragEnd={this.onDragEnd}>
-        <TodoList todos={foundData} 
+        <TodoList todos={foundData}
+                  onUpdated={this.updateItem} 
                   onDeleted={this.deleteItem}
                   onToggleDone={this.onToggleDone}
                   onToggleImportant={this.onToggleImportant}/>

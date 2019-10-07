@@ -5,6 +5,7 @@ import Progress from '../progress';
 import axios from 'axios';
 import DatePicker from "react-datepicker";
 import CommentList from '../comment-list';
+import ItemUpdateForm from '../item-update-form';
  
 import "react-datepicker/dist/react-datepicker.css";
 import './todo-list-item.css';
@@ -25,6 +26,7 @@ export default class TodoListItem extends Component {
   }
 
   state = {
+    showEditForm: false,
     startDate: new Date(),
     tasks: [],
     label: '',
@@ -154,6 +156,7 @@ export default class TodoListItem extends Component {
     });
   }
 
+
   onDragEnd(result) {
     if (!result.destination) {
       return;
@@ -175,6 +178,10 @@ export default class TodoListItem extends Component {
     this.setState({
       tasks
     });
+  }
+
+  openedForm = (edited) => {
+    this.setState({showEditForm: edited})
   }
 
   render() {
@@ -204,11 +211,16 @@ export default class TodoListItem extends Component {
           {...provided.draggableProps}
           {...provided.dragHandleProps}>
       <span className={classNames}>
-        <span
-          className="todo-list-item-label"
-          onClick={onToggleDone}>
-          {title}
-        </span>
+
+        {this.state.showEditForm ? <ItemUpdateForm title={title}
+                                                   openedForm={this.openedForm}
+                                                   id={this.props.id} 
+                                                   onUpdated={this.props.onUpdated}/> 
+                                   :         <span
+                                   className="todo-list-item-label"
+                                   onClick={onToggleDone}>
+                                     {title}
+                                 </span>}
   
         <button type="button"
                 className="btn btn-outline-success btn-sm float-right"
@@ -224,7 +236,7 @@ export default class TodoListItem extends Component {
 
         <button type="button"
                 className="btn btn-outline-info btn-sm float-right"
-                >
+                onClick={() => { this.setState({showEditForm: true}) }}>
           <i className="fa fa-pencil" />
         </button>
        

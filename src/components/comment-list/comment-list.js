@@ -50,6 +50,31 @@ export default class CommentList extends Component {
     });
   }
 
+  updateComment = async (text, id) => {
+    const fd = new FormData();
+    fd.append('title', text)
+    await axios.put(`http://localhost:3001/comments/${id}`, fd).then((res) => {
+      this.setState(({ comments }) => {
+        const idx = comments.findIndex((el) => el.id === id);
+
+        const oldItem = comments[idx];
+        const newItem = {
+          ... oldItem, title: text
+        }
+  
+        const newArray = [
+          ... comments.slice(0,idx),
+          newItem,
+          ... comments.slice(idx + 1)
+        ];
+  
+        return {
+          comments: newArray
+        }
+      });
+    })
+  }
+
   deleteComment = (id) => {
     this.setState(({ comments }) => {
       axios.delete(`http://localhost:3001/comments/${id}`)
@@ -78,6 +103,7 @@ export default class CommentList extends Component {
       <span style={ this.state.showComments ? {display: 'block'} : {display: 'none'}}>
         {this.state.comments.map((comment) =>(
           <Comment comment={comment}
+                   onUpdated={this.updateComment}
                    onDeleted={this.deleteComment}/>
         ))}
         <form className='d-flex'
