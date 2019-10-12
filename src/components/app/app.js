@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import axios from 'axios';
+import { BrowserRouter, Switch, Route } from "react-router-dom";
 
 import AppHeader from '../app-header';
 import ApiService from '../../services/api-service';
@@ -8,7 +9,8 @@ import SearchPanel from '../search-panel';
 import TodoList from '../todo-list';
 import ItemStatusFilter from '../item-status-filter';
 import ItemAddForm from '../item-add-form';
-import Facebook from '../facebook';
+import Home from "../Home";
+import Dashboard from "../Dashboard";
 
 import './app.css';
 
@@ -25,6 +27,8 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.onDragEnd = this.onDragEnd.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
   }
   
   apiService = new ApiService();
@@ -34,10 +38,16 @@ export default class App extends Component {
     projectId: 0,
     filter: '',
     userInpunt: '',
-    todoData: []
+    todoData: [],
+    loggedInStatus: "NOT_LOGGED_IN",
+    user: {}
   };
 
   componentDidMount(){
+    this.checkLoginStatus();
+  }
+
+  componentWillMount(){
     this.updateTodos();
   }
 
@@ -111,6 +121,7 @@ export default class App extends Component {
   async fetchProject(text) {
     const fd = new FormData();
     fd.append('title', text)
+    fd.append('user_id', this.state.user.id)
      await axios.post('http://localhost:3001/projects', fd).then((res) =>{
       console.log(res)
       this.setState(({todoData}) => {
@@ -225,6 +236,59 @@ export default class App extends Component {
     });
   }
 
+  checkLoginStatus() {
+    axios
+      .get("http://localhost:3001/logged_in", { withCredentials: true })
+      .then(response => {
+        if (
+          response.data.logged_in &&
+          this.state.loggedInStatus === "NOT_LOGGED_IN"
+        ) {
+          console.log(response.data.user)
+          this.setState({
+            loggedInStatus: "LOGGED_IN",
+            user: response.data.user
+          });
+        } else if (
+          !response.data.logged_in &
+          (this.state.loggedInStatus === "LOGGED_IN")
+        ) {
+          this.setState({
+            loggedInStatus: "NOT_LOGGED_IN",
+            user: {}
+          });
+        }
+      })
+      .catch(error => {
+        console.log("check login error", error);
+      });
+  }
+
+  handleLogout() {
+    this.setState({
+      loggedInStatus: "NOT_LOGGED_IN",
+      user: {}
+    });
+  }
+
+  handleLogin(data) {
+    this.setState({
+      loggedInStatus: "LOGGED_IN",
+      user: data.user
+    });
+  }
+
+  handleLogoutClick = async () =>{
+    await axios
+      .delete("http://localhost:3001/logout", { withCredentials: true })
+      .then(response => {
+        this.handleLogout();
+      })
+      .catch(error => {
+        console.log("logout error", error);
+      });
+  }
+
   render() {
     const { todoData, userInpunt, filter } = this.state;
 
@@ -237,25 +301,54 @@ export default class App extends Component {
     const foundData = userInpunt ? filteredData : sortedData
 
     return (
-      <div className="todo-app">
-        <div style={ this.state.loggedIn ? {display: 'block'} : {display: 'none'} }>
-        <Facebook setLogIn={this.setLogIn}/>
-        <AppHeader toDo={todoCount} done={doneCount} />
-        <div className="top-panel d-flex">
-          <SearchPanel onSearch={this.onSearch}/>
-          <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
-        </div>
-        <DragDropContext onDragEnd={this.onDragEnd}>
-        <TodoList todos={foundData}
-                  onUpdated={this.updateItem} 
-                  onDeleted={this.deleteItem}
-                  onToggleDone={this.onToggleDone}
-                  onToggleImportant={this.onToggleImportant}/>
-        </DragDropContext>
-
-        <ItemAddForm  onAdded={this.addItem}/>
-        </div>
-      </div>
+      <div className="app">
+        {this.state.loggedInStatus === 'NOT_LOGGED_IN' ? 
+      <BrowserRouter>
+        <Switch>
+          <Route
+            exact
+            path={"/"}
+            render={props => (
+              <Home
+                {...props}
+                handleLogin={this.handleLogin}
+                handleLogout={this.handleLogout}
+                loggedInStatus={this.state.loggedInStatus}/>
+            )}
+          />
+          <Route
+            exact
+            path={"/dashboard"}
+            render={props => (
+              <Dashboard
+                {...props}
+                loggedInStatus={this.state.loggedInStatus}
+              />
+            )}
+          />
+        </Switch>
+      </BrowserRouter> : 
+            <div className="todo-app">
+            <div>
+            <button onClick={() => this.handleLogoutClick()}>Logout</button>
+            <AppHeader toDo={todoCount} done={doneCount} />
+            <div className="top-panel d-flex">
+              <SearchPanel onSearch={this.onSearch}/>
+              <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
+            </div>
+            <DragDropContext onDragEnd={this.onDragEnd}>
+            <TodoList todos={foundData}
+                      onUpdated={this.updateItem} 
+                      onDeleted={this.deleteItem}
+                      onToggleDone={this.onToggleDone}
+                      onToggleImportant={this.onToggleImportant}/>
+            </DragDropContext>
+    
+            <ItemAddForm  onAdded={this.addItem}/>
+            </div>
+          </div>
+    }
+    </div>
     );
   }
 };
