@@ -18,10 +18,12 @@ export default class Facebook extends Component {
       name: response.name,
       picture: response.picture.data.url
     });
-    this.props.handleLogin(response)
     const fd = new FormData();
     fd.append('email', response.email)
-    await axios.post("http://localhost:3001/facebook_login", fd, { withCredentials: true })
+    await axios.post("http://localhost:3001/facebook_login", fd, { withCredentials: true }).then((res) => {
+      this.props.handleLogin(res.data)
+    })
+    this.props.setUserEmail(this.state.email);
   };
 
   componentClicked = () => console.log("clicked");
@@ -55,8 +57,10 @@ export default class Facebook extends Component {
     }
 
     return(
-      <div>
+      <div className="container h-100 mt-2">
+      <div className='row h-100 justify-content-center align-items-center'>
        { fbContent } 
+      </div>
       </div>
     )
   }

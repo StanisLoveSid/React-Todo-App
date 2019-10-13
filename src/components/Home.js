@@ -13,6 +13,10 @@ export default class Home extends Component {
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
   }
 
+  state = {
+    showLogin: false
+  }
+
   handleSuccessfulAuth(data) {
     this.props.handleLogin(data);
   }
@@ -28,15 +32,29 @@ export default class Home extends Component {
       });
   }
 
+  toggleLoginShow = (show) => {
+    this.setState({showLogin: !show})
+  }
+
   render() {
     return (
-      <div>
-        <h1>Home</h1>
-        <h1>Status: {this.props.loggedInStatus}</h1>
-        <button onClick={() => this.handleLogoutClick()}>Logout</button>
-        <Registration handleSuccessfulAuth={this.handleSuccessfulAuth} />
-        <Login handleSuccessfulAuth={this.handleSuccessfulAuth} />
-        <Facebook handleLogin={this.props.handleLogin}/>
+      <div className='mt-5'>
+        <div style={ this.state.showLogin ? {display: 'none'} : {display:'block'} }>
+          <Registration handleSuccessfulAuth={this.handleSuccessfulAuth}/>
+        </div>
+        <div style={ this.state.showLogin ? {display:'block'} : {display: 'none'}}>
+          <Login handleSuccessfulAuth={this.handleSuccessfulAuth} />
+        </div>
+        <div className="container h-100">
+          <div className='row h-100 justify-content-center align-items-center'>
+        <div className='mt-2'>
+          <a href='#' onClick={() => { this.toggleLoginShow(this.state.showLogin) }}>
+            { this.state.showLogin ? 'Sign up' : 'Sign in' }
+          </a>
+        </div>
+        </div>
+        </div>
+        <Facebook setUserEmail={this.props.setUserEmail} handleLogin={this.props.handleLogin}/>
       </div>
     );
   }

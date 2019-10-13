@@ -48,29 +48,39 @@ export default class Login extends Component {
 
   render() {
     return (
-      <div>
-        <form onSubmit={this.handleSubmit}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={this.state.email}
-            onChange={this.handleChange}
-            required
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={this.state.password}
-            onChange={this.handleChange}
-            required
-          />
-
-          <button type="submit">Login</button>
-        </form>
-      </div>
+        <div className="container h-100">
+          <div className='row h-100 justify-content-center align-items-center'>
+          <div className="card text-center" style={{width: '18rem'}}>
+          <div className="card-body">
+          <h5 class="card-title">Sign in</h5>
+          <form onSubmit={this.handleSubmit}>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              className='form-control mt-2'
+              value={this.state.email}
+              onChange={this.handleChange}
+              required
+            />
+  
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className='form-control mt-2'
+              value={this.state.password}
+              onChange={this.handleChange}
+              required
+            />
+  
+            <button type="submit"
+                    className='btn btn-outline-secondary mt-2'>Login</button>
+          </form>
+          </div>
+         </div>
+          </div>
+        </div>
     );
   }
 }

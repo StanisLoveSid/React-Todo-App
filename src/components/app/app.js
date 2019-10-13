@@ -40,15 +40,12 @@ export default class App extends Component {
     userInpunt: '',
     todoData: [],
     loggedInStatus: "NOT_LOGGED_IN",
-    user: {}
+    user: {},
+    userEmail: ''
   };
 
   componentDidMount(){
     this.checkLoginStatus();
-  }
-
-  componentWillMount(){
-    this.updateTodos();
   }
 
   async getTodos() {
@@ -57,7 +54,7 @@ export default class App extends Component {
     await projects.then((value) => {
       value.forEach((el) => { 
         todoData.push({title: el.title, id: el.id, important: el.important, 
-                       position: el.position, tasks: el.tasks,
+                       position: el.position, tasks: el.tasks, user_id: el.user_id,
                        done: el.done, filePath: `http://localhost:3001${el.attachment.url}`}) 
         this.setState({ projectId: el.id })
       })
@@ -65,9 +62,10 @@ export default class App extends Component {
     return todoData;
   }
 
-  async updateTodos() {
+  async updateTodos(user) {
     const todoData = await this.getTodos();
-    const sortedData = todoData.sort((a,b) => {
+    const sorted = todoData.filter(el => el.user_id === user.id);
+    const sortedData = sorted.sort((a,b) => {
       return a.position - b.position
     })
     console.log(sortedData)
@@ -142,10 +140,6 @@ export default class App extends Component {
     this.fetchProject(text);
   }
 
-  async fetchUpdatedItem(text, id) {
-
-  }
-
   updateItem = async (text, id) => {
     const fd = new FormData();
     fd.append('title', text)
@@ -169,10 +163,6 @@ export default class App extends Component {
         }
       });
     })
-  }
-
-  setLogIn = (logged) => {
-    this.setState({loggedIn: logged})
   }
 
   deleteItem = (id) => {
@@ -236,10 +226,12 @@ export default class App extends Component {
     });
   }
 
-  checkLoginStatus() {
-    axios
+  fetchStatus = async() => {
+    await axios
       .get("http://localhost:3001/logged_in", { withCredentials: true })
       .then(response => {
+        console.log(this.state.loggedInStatus)
+        console.log(response.data.logged_in)
         if (
           response.data.logged_in &&
           this.state.loggedInStatus === "NOT_LOGGED_IN"
@@ -249,6 +241,8 @@ export default class App extends Component {
             loggedInStatus: "LOGGED_IN",
             user: response.data.user
           });
+          this.updateTodos(response.data.user);
+          console.log(this.state.loggedInStatus)
         } else if (
           !response.data.logged_in &
           (this.state.loggedInStatus === "LOGGED_IN")
@@ -264,6 +258,10 @@ export default class App extends Component {
       });
   }
 
+  checkLoginStatus () {
+    this.fetchStatus();
+  }
+
   handleLogout() {
     this.setState({
       loggedInStatus: "NOT_LOGGED_IN",
@@ -271,7 +269,8 @@ export default class App extends Component {
     });
   }
 
-  handleLogin(data) {
+  async handleLogin(data) {
+    await this.updateTodos(data.user)
     this.setState({
       loggedInStatus: "LOGGED_IN",
       user: data.user
@@ -289,6 +288,10 @@ export default class App extends Component {
       });
   }
 
+  setUserEmail = (email) => {
+    this.setState({userEmail : email})
+  }
+
   render() {
     const { todoData, userInpunt, filter } = this.state;
 
@@ -303,31 +306,14 @@ export default class App extends Component {
     return (
       <div className="app">
         {this.state.loggedInStatus === 'NOT_LOGGED_IN' ? 
-      <BrowserRouter>
-        <Switch>
-          <Route
-            exact
-            path={"/"}
-            render={props => (
-              <Home
-                {...props}
+
+              <Home 
+                setUserEmail={this.setUserEmail}
                 handleLogin={this.handleLogin}
                 handleLogout={this.handleLogout}
                 loggedInStatus={this.state.loggedInStatus}/>
-            )}
-          />
-          <Route
-            exact
-            path={"/dashboard"}
-            render={props => (
-              <Dashboard
-                {...props}
-                loggedInStatus={this.state.loggedInStatus}
-              />
-            )}
-          />
-        </Switch>
-      </BrowserRouter> : 
+           
+             : 
             <div className="todo-app">
             <div>
             <button onClick={() => this.handleLogoutClick()}>Logout</button>
