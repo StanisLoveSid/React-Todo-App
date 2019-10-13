@@ -1,25 +1,29 @@
 import React, { Component } from 'react'
 import FacebookLogin from 'react-facebook-login';
+import axios from 'axios';
 
 export default class Facebook extends Component {
   
   state = {
-    isLoggedIn: false,
     userId: '',
     name: '',
     email: '',
     picture: ''
   }
 
-  responseFacebook = response => {
+  responseFacebook = async response => {
     console.log(response)
     this.setState({
-      isLoggedIn: true,
       userID: response.userID,
       name: response.name,
       picture: response.picture.data.url
     });
-    this.props.setLogIn(this.state.isLoggedIn)
+    const fd = new FormData();
+    fd.append('email', response.email)
+    await axios.post("http://localhost:3001/facebook_login", fd, { withCredentials: true }).then((res) => {
+      this.props.handleLogin(res.data)
+    })
+    this.props.setUserEmail(this.state.email);
   };
 
   componentClicked = () => console.log("clicked");
@@ -45,7 +49,7 @@ export default class Facebook extends Component {
       fbContent = (
         <FacebookLogin
           appId="1457601917724880"
-          autoLoad={true}
+          autoLoad={false}
           fields="name,email,picture"
           callback={this.responseFacebook}
         />
@@ -53,8 +57,10 @@ export default class Facebook extends Component {
     }
 
     return(
-      <div>
+      <div className="container h-100 mt-2">
+      <div className='row h-100 justify-content-center align-items-center'>
        { fbContent } 
+      </div>
       </div>
     )
   }
