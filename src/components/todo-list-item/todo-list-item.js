@@ -1,34 +1,20 @@
 import React, { Component } from 'react';
 import {Motion, spring} from 'react-motion';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { Draggable } from 'react-beautiful-dnd';
 import Progress from '../progress';
 import axios from 'axios';
 import DatePicker from "react-datepicker";
-import CommentList from '../comment-list';
+import TaskList from '../task-list';
 import ItemUpdateForm from '../item-update-form';
  
 import "react-datepicker/dist/react-datepicker.css";
 import './todo-list-item.css';
 
-const reorder = (list, startIndex, endIndex) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
-
 export default class TodoListItem extends Component {
-
-  constructor(props) {
-    super(props);
-    this.onDragEnd = this.onDragEnd.bind(this);
-  }
 
   state = {
     showEditForm: false,
     startDate: new Date(),
-    tasks: [],
     label: '',
     done: false,
     important: false,
@@ -43,12 +29,6 @@ export default class TodoListItem extends Component {
       startDate: date
     });
   };
-
-  componentDidMount() {
-    this.setState({
-      tasks: this.props.tasks
-    })
-  }
 
   fileSelectedHandler = event => {
     this.setState({
@@ -83,50 +63,6 @@ export default class TodoListItem extends Component {
     }
   }
 
-  changeDone = (id) => {
-    const { tasks } = this.state;
-    const idx = tasks.findIndex((el) => el.id === id);
-
-    const oldItem = tasks[idx];
-    const oldItemPropName = !oldItem.done;
-    const fd = new FormData();
-    fd.append('done', oldItemPropName);
-    axios.put(`http://localhost:3001/tasks/${id}`, fd)
-    const newItem = {
-      ... oldItem, done: oldItemPropName
-    }
-
-    const newArray = [
-      ... tasks.slice(0,idx),
-      newItem,
-      ... tasks.slice(idx + 1)
-    ];
-
-    console.log(newArray)
-
-    this.setState(({tasks}) => {
-      return {
-        tasks: newArray
-      } 
-    });
-  }
-
-  deleteTask = (id) => {
-    this.setState(({ tasks }) => {
-      axios.delete(`http://localhost:3001/tasks/${id}`)
-      const idx = tasks.findIndex((el) => el.id === id);
-
-      const newArray = [
-        ... tasks.slice(0,idx),
-        ... tasks.slice(idx + 1)
-      ];
-
-      return {
-        tasks: newArray
-      }
-    });
-  }
-
   onSubmit = async (e) => {
     e.preventDefault();
     const fd = new FormData();
@@ -153,30 +89,6 @@ export default class TodoListItem extends Component {
   onLabelChange = (e) => {
     this.setState({
       label: e.target.value
-    });
-  }
-
-
-  onDragEnd(result) {
-    if (!result.destination) {
-      return;
-    }
-
-    const tasks = reorder(
-      this.state.tasks,
-      result.source.index,
-      result.destination.index
-    );
-
-    const sortedTasks = [];
-
-    tasks.forEach((el, index) => {  
-      sortedTasks.push([el.id, index])
-    })
-
-    axios.put('http://localhost:3001/update_tasks_position', { positions: sortedTasks })
-    this.setState({
-      tasks
     });
   }
 
@@ -265,42 +177,8 @@ export default class TodoListItem extends Component {
         
       </span>
       <div>
-
-      <DragDropContext onDragEnd={this.onDragEnd}>
-        <Droppable droppableId="droppable">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}>
-              {this.state.tasks.map((item, index) => (
-                <Draggable key={item.id} draggableId={item.id} index={index}>
-                  {(provided) => (
-                    <div className='list-group-item'
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}>
-                      <span style={item.done ? {textDecorationLine: 'line-through'} : {}} 
-                            onClick={() => { this.changeDone(item.id) } }>
-                        {item.title} {item.deadline}
-                      </span>
-                      <button type="button"
-                              className="btn btn-outline-danger btn-sm float-right"
-                              onClick={() => { this.deleteTask(item.id) }}>
-                        <i className="fa fa-trash-o" />
-                       </button>
-                      <span>
-                      <CommentList comments={item.comments}
-                                   taskId={item.id}/>
-                      </span>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+ 
+        <TaskList tasks={this.props.tasks}/>
 
         <form className='item-add-form d-flex'
               onSubmit={this.onSubmit}>
