@@ -5792,6 +5792,11 @@ json5@^2.1.0:
   dependencies:
     minimist "^1.2.0"
 
+jsonapi-normalizer@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/jsonapi-normalizer/-/jsonapi-normalizer-2.0.1.tgz#3a8d12ba50af14b2777140fbd6157180d0200d7d"
+  integrity sha512-svnMKclAIxI89uMCDigDrpzl5BnZTFxGfBGZgErIm320p85pDDeW6p/ic84upgbFNto4qgGsTkjMvVb8usYQhw==
+
 jsonfile@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"

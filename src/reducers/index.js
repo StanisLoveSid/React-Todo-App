@@ -9,8 +9,8 @@ const entitiesInitState = {
 export function entities(state = entitiesInitState, action) {
   switch (action.type) {
     case 'FETCH_PROJECTS':
-      console.log('here we are')
-      return {...state, ...action.payload.entities}
+    //   debugger
+      return {...state, todos: action.payload}
     default:
       return state;
   }

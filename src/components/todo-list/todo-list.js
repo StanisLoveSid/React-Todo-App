@@ -15,6 +15,7 @@ class TodoList extends Component {
   }
 
   render(){
+    // debugger
     const elements = this.props.todos.map((item, index) => {
       const { id, ... itemProps } = item;
   
@@ -52,7 +53,7 @@ class TodoList extends Component {
 
 const mapStateToProps = state => {
   return {
-    projects: Object.values(state.entities.todos)
+    todos: Object.values(state.entities.todos)
   }
 }
 

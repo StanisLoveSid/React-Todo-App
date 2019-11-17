@@ -1,11 +1,9 @@
 import axios from 'axios'
 
 export const fetchProjectsRequest = () => dispatch => {
-  fetch(`http://localhost:3001/projects.json`, { credentials: 'include' }).then(response => {
-    return response.json();
-  })
-  .then(data => { 
-    dispatch(projectsRequestSuccess(data))
+  return axios.get(`http://localhost:3001/projects`, { withCredentials: true })
+  .then(response => { 
+    dispatch(projectsRequestSuccess(response.data))
   })
   .catch(error => console.log(error))
 }

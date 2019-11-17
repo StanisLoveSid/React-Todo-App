@@ -322,7 +322,7 @@ class App extends Component {
               <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
             </div>
             <DragDropContext onDragEnd={this.onDragEnd}>
-            <TodoList todos={foundData}
+            <TodoList 
                       onUpdated={this.updateItem} 
                       onDeleted={this.deleteItem}
                       onToggleDone={this.onToggleDone}
