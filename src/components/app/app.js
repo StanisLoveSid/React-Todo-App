@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import axios from 'axios';
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import {connect} from 'react-redux';
 
 import AppHeader from '../app-header';
 import ApiService from '../../services/api-service';
@@ -10,7 +10,6 @@ import TodoList from '../todo-list';
 import ItemStatusFilter from '../item-status-filter';
 import ItemAddForm from '../item-add-form';
 import Home from "../Home";
-import Dashboard from "../Dashboard";
 
 import './app.css';
 
@@ -22,7 +21,7 @@ const reorder = (list, startIndex, endIndex) => {
   return result;
 };
 
-export default class App extends Component {
+class App extends Component {
 
   constructor(props) {
     super(props);
@@ -338,3 +337,5 @@ export default class App extends Component {
     );
   }
 };
+
+export default connect(null, null)(App);
