@@ -15,7 +15,6 @@ class TodoList extends Component {
   }
 
   render(){
-    // debugger
     const elements = this.props.todos.map((item, index) => {
       const { id, ... itemProps } = item;
   

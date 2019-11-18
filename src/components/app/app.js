@@ -47,30 +47,6 @@ class App extends Component {
     this.checkLoginStatus();
   }
 
-  async getTodos() {
-    const todoData = [];
-    const projects = this.apiService.getAllProjects();
-    await projects.then((value) => {
-      value.forEach((el) => { 
-        todoData.push({title: el.title, id: el.id, important: el.important, 
-                       position: el.position, tasks: el.tasks, user_id: el.user_id,
-                       done: el.done, filePath: `http://localhost:3001${el.attachment.url}`}) 
-        this.setState({ projectId: el.id })
-      })
-    })
-    return todoData;
-  }
-
-  async updateTodos(user) {
-    const todoData = await this.getTodos();
-    const sorted = todoData.filter(el => el.user_id === user.id);
-    const sortedData = sorted.sort((a,b) => {
-      return a.position - b.position
-    })
-    console.log(sortedData)
-    this.setState({ todoData: sortedData })
-  }
-
   toggleProperty(arr, id, propName) {
     const idx = arr.findIndex((el) => el.id === id);
 
@@ -101,83 +77,6 @@ class App extends Component {
       return {
         todoData: this.toggleProperty(todoData, id, 'done')
       } 
-    });
-  }
-
-  createItem(text) {
-    const{ projectId } = this.state;
-    // onsole.log(projectId)
-    return {
-      label: text,
-      important: false,
-      done: false,
-      id: projectId+1
-    }
-  }
-
-  async fetchProject(text) {
-    const fd = new FormData();
-    fd.append('title', text)
-    fd.append('user_id', this.state.user.id)
-     await axios.post('http://localhost:3001/projects', fd).then((res) =>{
-      console.log(res)
-      this.setState(({todoData}) => {
-        const newArray = [
-          ... todoData,
-          res.data
-        ];
-  
-        return {
-          todoData: newArray,
-          projectId: res.data.id
-        }  
-      });
-    })
-  }
-
-  addItem = (text) => {
-    this.fetchProject(text);
-  }
-
-  updateItem = async (text, id) => {
-    const fd = new FormData();
-    fd.append('title', text)
-    await axios.put(`http://localhost:3001/projects/${id}`, fd).then((res) => {
-      this.setState(({ todoData }) => {
-        const idx = this.state.todoData.findIndex((el) => el.id === id);
-
-        const oldItem = todoData[idx];
-        const newItem = {
-          ... oldItem, title: text
-        }
-  
-        const newArray = [
-          ... todoData.slice(0,idx),
-          newItem,
-          ... todoData.slice(idx + 1)
-        ];
-  
-        return {
-          todoData: newArray
-        }
-      });
-    })
-  }
-
-  deleteItem = (id) => {
-    this.setState(({ todoData }) => {
-      this.apiService.deleteProject(id);
-
-      const idx = todoData.findIndex((el) => el.id === id);
-
-      const newArray = [
-        ... todoData.slice(0,idx),
-        ... todoData.slice(idx + 1)
-      ];
-
-      return {
-        todoData: newArray
-      }
     });
   }
 
@@ -240,7 +139,6 @@ class App extends Component {
             loggedInStatus: "LOGGED_IN",
             user: response.data.user
           });
-          this.updateTodos(response.data.user);
           console.log(this.state.loggedInStatus)
         } else if (
           !response.data.logged_in &
@@ -269,7 +167,6 @@ class App extends Component {
   }
 
   async handleLogin(data) {
-    await this.updateTodos(data.user)
     this.setState({
       loggedInStatus: "LOGGED_IN",
       user: data.user
@@ -322,14 +219,13 @@ class App extends Component {
               <ItemStatusFilter onChangeFilter={this.onChangeFilter} filter={filter}/>
             </div>
             <DragDropContext onDragEnd={this.onDragEnd}>
-            <TodoList 
-                      onUpdated={this.updateItem} 
+            <TodoList onUpdated={this.updateItem} 
                       onDeleted={this.deleteItem}
                       onToggleDone={this.onToggleDone}
                       onToggleImportant={this.onToggleImportant}/>
             </DragDropContext>
     
-            <ItemAddForm  onAdded={this.addItem}/>
+            <ItemAddForm  userId={this.state.user.id} onAdded={this.addItem}/>
             </div>
           </div>
     }

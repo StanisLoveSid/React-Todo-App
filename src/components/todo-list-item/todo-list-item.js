@@ -1,16 +1,20 @@
 import React, { Component } from 'react';
 import {Motion, spring} from 'react-motion';
 import { Draggable } from 'react-beautiful-dnd';
+import {connect} from 'react-redux';
+
 import Progress from '../progress';
 import axios from 'axios';
 import DatePicker from "react-datepicker";
 import TaskList from '../task-list';
 import ItemUpdateForm from '../item-update-form';
+import { removeProjectRequest } from '../../redux/actions';
+import { createTaskRequest } from '../../redux/actions';
  
 import "react-datepicker/dist/react-datepicker.css";
 import './todo-list-item.css';
 
-export default class TodoListItem extends Component {
+class TodoListItem extends Component {
 
   state = {
     showEditForm: false,
@@ -65,25 +69,10 @@ export default class TodoListItem extends Component {
 
   onSubmit = async (e) => {
     e.preventDefault();
-    const fd = new FormData();
     const { label, startDate } = this.state;
     const { id } = this.props;
-    fd.append('title', label);
-    fd.append('project_id', id);
-    fd.append('deadline', startDate);
-    await axios.post('http://localhost:3001/tasks', fd).then((res) =>{
-      this.setState(({tasks}) => {
-        const newArray = [
-          ... tasks,
-          res.data
-        ];
-
-        return {
-          tasks: newArray,
-          label: ''
-        }  
-      });
-    })
+    this.props.createTaskRequest(id, label, startDate)
+    this.setState({ label: '' })
   }
 
   onLabelChange = (e) => {
@@ -94,6 +83,11 @@ export default class TodoListItem extends Component {
 
   openedForm = (edited) => {
     this.setState({showEditForm: edited})
+  }
+
+  onDeleted = (event) => {
+    event.preventDefault()
+    this.props.removeProjectRequest(this.props.id)
   }
 
   render() {
@@ -142,7 +136,7 @@ export default class TodoListItem extends Component {
 
         <button type="button"
                 className="btn btn-outline-danger btn-sm float-right"
-                onClick={onDeleted}>
+                onClick={this.onDeleted}>
           <i className="fa fa-trash-o" />
         </button>
 
@@ -178,7 +172,7 @@ export default class TodoListItem extends Component {
       </span>
       <div>
  
-        <TaskList tasks={this.props.tasks}/>
+        <TaskList projectTasks={this.props.tasks}/>
 
         <form className='item-add-form d-flex'
               onSubmit={this.onSubmit}>
@@ -204,3 +198,10 @@ export default class TodoListItem extends Component {
     );
   }
 }
+
+const mapDispatchToProps = {
+  removeProjectRequest: removeProjectRequest,
+  createTaskRequest: createTaskRequest
+}
+
+export default connect(null, mapDispatchToProps)(TodoListItem);

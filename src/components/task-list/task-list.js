@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import axios from 'axios';
+import {connect} from 'react-redux';
+import { pick, values } from 'lodash';
+import { fetchTasks } from '../../redux/actions';
  
 import Task from '../task';
 import './task-list.css';
@@ -13,15 +16,15 @@ const reorder = (list, startIndex, endIndex) => {
   return result;
 };
 
-export default class TaskList extends Component {
+class TaskList extends Component {
 
     constructor(props) {
       super(props);
       this.onDragEnd = this.onDragEnd.bind(this);
     }
 
-    state = {
-      tasks: this.props.tasks
+    componentDidMount() {
+      this.props.fetchTasks(this.props.projectTasks)
     }
 
     onDragEnd(result) {
@@ -44,49 +47,6 @@ export default class TaskList extends Component {
       axios.put('http://localhost:3001/update_tasks_position', { positions: sortedTasks })
       this.setState({
         tasks
-      });
-    }
-
-    updateComment = async (text, deadline, id) => {
-      const fd = new FormData();
-      fd.append('title', text);
-      fd.append('deadline', deadline);
-      await axios.put(`http://localhost:3001/tasks/${id}`, fd).then((res) => {
-        this.setState(({ tasks }) => {
-          const idx = tasks.findIndex((el) => el.id === id);
-  
-          const datestring = deadline.getFullYear() + "-" + deadline.getMonth() + "-" + deadline.getDate()   
-          const oldItem = tasks[idx];
-          const newItem = {
-            ... oldItem, title: text, deadline: datestring
-          }
-      
-          const newArray = [
-            ... tasks.slice(0,idx),
-            newItem,
-            ... tasks.slice(idx + 1)
-          ];
-      
-          return {
-            tasks: newArray
-          }
-        });
-      })
-    }
-
-    deleteTask = (id) => {
-      this.setState(({ tasks }) => {
-        axios.delete(`http://localhost:3001/tasks/${id}`)
-        const idx = tasks.findIndex((el) => el.id === id);
-  
-        const newArray = [
-          ... tasks.slice(0,idx),
-          ... tasks.slice(idx + 1)
-        ];
-  
-        return {
-          tasks: newArray
-        }
       });
     }
 
@@ -119,7 +79,7 @@ export default class TaskList extends Component {
       }
 
   render() {
-    const { tasks } = this.state;
+    const { tasks } = this.props;
 
     return(
         <DragDropContext onDragEnd={this.onDragEnd}>
@@ -130,9 +90,7 @@ export default class TaskList extends Component {
             ref={provided.innerRef}>
             {tasks.map((item, index) => (
             <Task item={item} index={index} 
-                  changeDone={this.changeDone} 
-                  deleteTask={this.deleteTask}
-                  onUpdated={this.updateComment}/>
+                  changeDone={this.changeDone}/>
           ))}
           {provided.placeholder}
             </div>
@@ -142,3 +100,15 @@ export default class TaskList extends Component {
     )
   }
 }
+
+const mapStateToProps = state => {
+  return {
+    tasks: Object.values(state.entities.tasks)
+  }
+}
+
+const mapDispatchToProps = {
+  fetchTasks: fetchTasks
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TaskList);
