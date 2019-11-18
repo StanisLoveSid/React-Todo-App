@@ -1,16 +1,18 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { updateProjectRequest } from '../../redux/actions';
 
 import './item-update-form.css'
 
-export default class ItemUpdateForm extends Component {
+class ItemUpdateForm extends Component {
 
   state = {
     title: this.props.title
   }
 
-  onSubmit = async (e) => {
+  onSubmit = (e) => {
     e.preventDefault();
-    await this.props.onUpdated(this.state.title, this.props.id);
+    this.props.updateProjectRequest(this.state.title, this.props.id);
     this.props.openedForm(false);
   }
 
@@ -41,3 +43,9 @@ export default class ItemUpdateForm extends Component {
     )
   }
 }
+
+const mapDispatchToProps = {
+  updateProjectRequest: updateProjectRequest
+}
+
+export default connect(null, mapDispatchToProps)(ItemUpdateForm);

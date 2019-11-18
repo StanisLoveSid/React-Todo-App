@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
 import DatePicker from "react-datepicker";
 
+import {connect} from 'react-redux';
+import { updateTaskRequest } from '../../redux/actions';
+
 import "react-datepicker/dist/react-datepicker.css";
 import './task-update-form.css'
 
-export default class TaskUpdateForm extends Component {
+class TaskUpdateForm extends Component {
 
   state = {
     startDate: new Date(),
@@ -13,7 +16,7 @@ export default class TaskUpdateForm extends Component {
 
   onSubmit = async (e) => {
     e.preventDefault();
-    await this.props.onUpdated(this.state.title, this.state.startDate, this.props.id);
+    this.props.updateTaskRequest(this.state.title, this.state.startDate, this.props.id);
     this.props.openedForm(false);
   }
 
@@ -57,3 +60,9 @@ export default class TaskUpdateForm extends Component {
     )
   }
 }
+
+const mapDispatchToProps = {
+  updateTaskRequest: updateTaskRequest
+}
+
+export default connect(null, mapDispatchToProps)(TaskUpdateForm);

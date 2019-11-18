@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
+import {connect} from 'react-redux';
+import { createProjectRequest } from '../../redux/actions';
 
 import './item-add-form.css'
 
-export default class ItemAddForm extends Component {
+class ItemAddForm extends Component {
 
   state = {
     title: ''
@@ -10,7 +12,7 @@ export default class ItemAddForm extends Component {
 
   onSubmit = async (e) => {
     e.preventDefault();
-    await this.props.onAdded(this.state.title)
+    this.props.createProjectRequest(this.state.title, this.props.userId)
     this.setState({
       title: ''
     });
@@ -38,3 +40,9 @@ export default class ItemAddForm extends Component {
     )
   }
 }
+
+const mapDispatchToProps = {
+  createProjectRequest: createProjectRequest
+}
+
+export default connect(null, mapDispatchToProps)(ItemAddForm);

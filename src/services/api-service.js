@@ -14,7 +14,7 @@ export default class ApiService {
 
   async getAllProjects(){
     let array = [];
-    await this.getResource(`/projects.json`).then(response => {
+    await fetch(`http://localhost:3001/projects.json`, { credentials: 'include' }).then(response => {
       return response.json();
     }).then(data => { array = data })
     return array;

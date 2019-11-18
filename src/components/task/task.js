@@ -2,12 +2,20 @@ import React, { Component } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import TaskUpdateForm from '../task-update-form';
 import CommentList from '../comment-list';
+import {connect} from 'react-redux';
+import { removeTaskRequest } from '../../redux/actions';
+
 import './task.css';
 
-export default class Task extends Component {
+class Task extends Component {
  
   state = {
     showEditForm: false
+  }
+
+  onDeleted = (event) => {
+    event.preventDefault()
+    this.props.removeTaskRequest(this.props.item.id)
   }
 
   openedForm = (edited) => {
@@ -45,7 +53,7 @@ export default class Task extends Component {
 
             <button type="button"
                     className="btn btn-outline-danger btn-sm float-right"
-                    onClick={() => { this.props.deleteTask(item.id) }}>
+                    onClick={this.onDeleted}>
               <i className="fa fa-trash-o" />
              </button>
             <span>
@@ -58,3 +66,9 @@ export default class Task extends Component {
     )
   }
 }
+
+const mapDispatchToProps = {
+  removeTaskRequest: removeTaskRequest
+}
+
+export default connect(null, mapDispatchToProps)(Task);
